@@ -1,8 +1,15 @@
+using Microsoft.EntityFrameworkCore;
+using TodoApi.Models;
+using TodoApi.Middleware;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddDbContext<TodoContext>(options =>
+    options.UseInMemoryDatabase("TodoDb"));
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
@@ -13,6 +20,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseMiddleware<BasicAuthMiddleware>();
 
 var summaries = new[]
 {
@@ -32,6 +41,8 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 })
 .WithName("GetWeatherForecast");
+
+app.MapControllers();
 
 app.Run();
 
