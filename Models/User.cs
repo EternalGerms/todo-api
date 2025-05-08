@@ -16,7 +16,5 @@ namespace TodoApi.Models
 
         [Required]
         public string PasswordHash { get; set; } = null!;
-
-        public string? CurrentToken { get; set; } // To store the active auth token
     }
 } 

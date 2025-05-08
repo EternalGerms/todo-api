@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\epoto\\Desktop\\trabajo\\todoApi\\TodoApi\\TodoApi.csproj": {}
+    "C:\\Users\\epoto\\Desktop\\programation\\todo-api\\TodoApi.csproj": {}
   },
   "projects": {
-    "C:\\Users\\epoto\\Desktop\\trabajo\\todoApi\\TodoApi\\TodoApi.csproj": {
+    "C:\\Users\\epoto\\Desktop\\programation\\todo-api\\TodoApi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\epoto\\Desktop\\trabajo\\todoApi\\TodoApi\\TodoApi.csproj",
+        "projectUniqueName": "C:\\Users\\epoto\\Desktop\\programation\\todo-api\\TodoApi.csproj",
         "projectName": "TodoApi",
-        "projectPath": "C:\\Users\\epoto\\Desktop\\trabajo\\todoApi\\TodoApi\\TodoApi.csproj",
+        "projectPath": "C:\\Users\\epoto\\Desktop\\programation\\todo-api\\TodoApi.csproj",
         "packagesPath": "C:\\Users\\epoto\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\epoto\\Desktop\\trabajo\\todoApi\\TodoApi\\obj\\",
+        "outputPath": "C:\\Users\\epoto\\Desktop\\programation\\todo-api\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\epoto\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -44,6 +44,10 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
+            "Microsoft.AspNetCore.Authentication.JwtBearer": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
               "version": "[9.0.4, )"

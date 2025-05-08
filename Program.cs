@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using TodoApi.Models;
-using TodoApi.Middleware;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +12,30 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddDbContext<TodoContext>(options =>
     options.UseInMemoryDatabase("TodoDb"));
+
+// JWT Authentication configuration
+var jwtKey = builder.Configuration["Jwt:Key"] ?? "ThisIsASecretKeyForJwtToken";
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "TodoApiIssuer";
+var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "TodoApiAudience";
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtIssuer,
+        ValidAudience = jwtAudience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+    };
+});
 
 // Configure controllers and JSON options
 builder.Services.AddControllers()
@@ -28,7 +54,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseMiddleware<TokenAuthMiddleware>();
+app.UseAuthentication();
+app.UseAuthorization();
 
 var summaries = new[]
 {

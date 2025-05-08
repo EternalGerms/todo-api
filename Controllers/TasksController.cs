@@ -5,10 +5,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using TodoApi.Models;
 using TodoApi.Models.DTOs;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace TodoApi.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class TasksController : ControllerBase
     {
@@ -23,14 +26,14 @@ namespace TodoApi.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TaskResponse>>> GetTasks([FromQuery] TodoApi.Models.TaskStatus? status = null)
         {
-            // Get the user from HttpContext.Items that was set in the middleware
-            if (HttpContext.Items["User"] is not User currentUser)
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst(ClaimTypes.Name) ?? User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
             {
                 return Unauthorized();
             }
 
             // Get tasks for the current user
-            var query = _context.TodoTasks.Where(t => t.UserId == currentUser.Id);
+            var query = _context.TodoTasks.Where(t => t.UserId == userId);
 
             // Filter by status if provided
             if (status.HasValue)
@@ -56,7 +59,8 @@ namespace TodoApi.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<TaskResponse>> GetTask(int id)
         {
-            if (HttpContext.Items["User"] is not User currentUser)
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst(ClaimTypes.Name) ?? User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
             {
                 return Unauthorized();
             }
@@ -69,7 +73,7 @@ namespace TodoApi.Controllers
             }
 
             // Ensure the user owns this task
-            if (task.UserId != currentUser.Id)
+            if (task.UserId != userId)
             {
                 return Forbid();
             }
@@ -89,7 +93,8 @@ namespace TodoApi.Controllers
         [HttpPost]
         public async Task<ActionResult<TaskResponse>> CreateTask(CreateTaskRequest request)
         {
-            if (HttpContext.Items["User"] is not User currentUser)
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst(ClaimTypes.Name) ?? User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
             {
                 return Unauthorized();
             }
@@ -99,7 +104,7 @@ namespace TodoApi.Controllers
                 Title = request.Title,
                 Description = request.Description,
                 Status = request.Status,
-                UserId = currentUser.Id
+                UserId = userId
             };
 
             _context.TodoTasks.Add(task);
@@ -120,7 +125,8 @@ namespace TodoApi.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateTask(int id, UpdateTaskRequest request)
         {
-            if (HttpContext.Items["User"] is not User currentUser)
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst(ClaimTypes.Name) ?? User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
             {
                 return Unauthorized();
             }
@@ -132,7 +138,7 @@ namespace TodoApi.Controllers
             }
 
             // Ensure the user owns this task
-            if (task.UserId != currentUser.Id)
+            if (task.UserId != userId)
             {
                 return Forbid();
             }
@@ -167,7 +173,8 @@ namespace TodoApi.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTask(int id)
         {
-            if (HttpContext.Items["User"] is not User currentUser)
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst(ClaimTypes.Name) ?? User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
             {
                 return Unauthorized();
             }
@@ -179,7 +186,7 @@ namespace TodoApi.Controllers
             }
 
             // Ensure the user owns this task
-            if (task.UserId != currentUser.Id)
+            if (task.UserId != userId)
             {
                 return Forbid();
             }
