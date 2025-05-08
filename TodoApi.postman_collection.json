@@ -57,22 +57,22 @@
       "response": []
     },
     {
-      "name": "Get Tasks (JWT Protected)",
+      "name": "Get Todos (JWT Protected)",
       "request": {
         "method": "GET",
         "header": [
           { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/tasks",
+          "raw": "{{baseUrl}}/todos",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "tasks"]
+          "path": ["todos"]
         }
       },
       "response": []
     },
     {
-      "name": "Create Task",
+      "name": "Create Todo",
       "request": {
         "method": "POST",
         "header": [
@@ -84,15 +84,15 @@
           "raw": "{\n  \"title\": \"My Task\",\n  \"description\": \"Details about the task\",\n  \"status\": \"Pending\"\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/tasks",
+          "raw": "{{baseUrl}}/todos",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "tasks"]
+          "path": ["todos"]
         }
       },
       "response": []
     },
     {
-      "name": "Update Task",
+      "name": "Update Todo",
       "request": {
         "method": "PUT",
         "header": [
@@ -104,24 +104,24 @@
           "raw": "{\n  \"title\": \"Updated Task\",\n  \"description\": \"Updated details\",\n  \"status\": \"Done\"\n}"
         },
         "url": {
-          "raw": "{{baseUrl}}/api/tasks/1",
+          "raw": "{{baseUrl}}/todos/1",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "tasks", "1"]
+          "path": ["todos", "1"]
         }
       },
       "response": []
     },
     {
-      "name": "Delete Task",
+      "name": "Delete Todo",
       "request": {
         "method": "DELETE",
         "header": [
           { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
         ],
         "url": {
-          "raw": "{{baseUrl}}/api/tasks/1",
+          "raw": "{{baseUrl}}/todos/1",
           "host": ["{{baseUrl}}"],
-          "path": ["api", "tasks", "1"]
+          "path": ["todos", "1"]
         }
       },
       "response": []
