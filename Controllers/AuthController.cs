@@ -4,11 +4,12 @@ using TodoApi.Models;
 using TodoApi.Models.DTOs;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
+using System;
 
 namespace TodoApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly TodoContext _context;
@@ -17,30 +18,39 @@ namespace TodoApi.Controllers
             _context = context;
         }
 
-        [HttpPost("register")]
+        [HttpPost("/register")]
         public async Task<IActionResult> Register(RegisterRequest request)
         {
-            if (await _context.Users.AnyAsync(u => u.Username == request.Username))
-                return BadRequest("Username already exists.");
+            if (await _context.Users.AnyAsync(u => u.Email == request.Email))
+                return BadRequest(new { message = "Email already exists." });
+
+            var token = Guid.NewGuid().ToString();
 
             var user = new User
             {
-                Username = request.Username,
-                PasswordHash = HashPassword(request.Password)
+                Name = request.Name,
+                Email = request.Email,
+                PasswordHash = HashPassword(request.Password),
+                CurrentToken = token
             };
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
-            return Ok("User registered successfully.");
+
+            return Ok(new AuthResponse { Token = token });
         }
 
-        [HttpPost("login")]
+        [HttpPost("/login")]
         public async Task<IActionResult> Login(LoginRequest request)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
             if (user == null || user.PasswordHash != HashPassword(request.Password))
-                return Unauthorized("Invalid credentials.");
-            // For simplicity, just return a success message
-            return Ok("Login successful.");
+                return Unauthorized(new { message = "Invalid credentials." });
+
+            var token = Guid.NewGuid().ToString();
+            user.CurrentToken = token;
+            await _context.SaveChangesAsync();
+
+            return Ok(new AuthResponse { Token = token });
         }
 
         private string HashPassword(string password)

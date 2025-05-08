@@ -6,9 +6,17 @@ namespace TodoApi.Models
     {
         [Key]
         public int Id { get; set; }
+
         [Required]
-        public string Username { get; set; }
+        public string Name { get; set; } = null!;
+
         [Required]
-        public string PasswordHash { get; set; }
+        // In a real DB, ensure this is unique
+        public string Email { get; set; } = null!;
+
+        [Required]
+        public string PasswordHash { get; set; } = null!;
+
+        public string? CurrentToken { get; set; } // To store the active auth token
     }
 } 

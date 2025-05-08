@@ -1,14 +1,32 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace TodoApi.Models.DTOs
 {
     public class RegisterRequest
     {
-        public string Username { get; set; }
-        public string Password { get; set; }
+        [Required]
+        public string Name { get; set; } = null!;
+
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = null!;
+
+        [Required]
+        public string Password { get; set; } = null!;
     }
 
     public class LoginRequest
     {
-        public string Username { get; set; }
-        public string Password { get; set; }
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = null!;
+
+        [Required]
+        public string Password { get; set; } = null!;
+    }
+
+    public class AuthResponse
+    {
+        public string Token { get; set; } = null!;
     }
 } 

@@ -28,7 +28,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseMiddleware<BasicAuthMiddleware>();
+app.UseMiddleware<TokenAuthMiddleware>();
 
 var summaries = new[]
 {
