@@ -24,7 +24,12 @@ namespace TodoApi.Controllers
 
         // GET: api/tasks
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TaskResponse>>> GetTasks([FromQuery] TodoApi.Models.TaskStatus? status = null)
+        public async Task<ActionResult<object>> GetTodos(
+            [FromQuery] int page = 1,
+            [FromQuery] int limit = 10,
+            [FromQuery] TodoApi.Models.TaskStatus? status = null,
+            [FromQuery] string sort = "id",
+            [FromQuery] string order = "asc")
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst(ClaimTypes.Name) ?? User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
@@ -41,7 +46,27 @@ namespace TodoApi.Controllers
                 query = query.Where(t => t.Status == status.Value);
             }
 
-            var tasks = await query.ToListAsync();
+            // Sorting
+            bool descending = order.ToLower() == "desc";
+            switch (sort.ToLower())
+            {
+                case "title":
+                    query = descending ? query.OrderByDescending(t => t.Title) : query.OrderBy(t => t.Title);
+                    break;
+                case "status":
+                    query = descending ? query.OrderByDescending(t => t.Status) : query.OrderBy(t => t.Status);
+                    break;
+                case "id":
+                default:
+                    query = descending ? query.OrderByDescending(t => t.Id) : query.OrderBy(t => t.Id);
+                    break;
+            }
+
+            var total = await query.CountAsync();
+            var tasks = await query
+                .Skip((page - 1) * limit)
+                .Take(limit)
+                .ToListAsync();
 
             // Map to response DTOs
             var taskResponses = tasks.Select(t => new TaskResponse
@@ -52,7 +77,12 @@ namespace TodoApi.Controllers
                 Status = t.Status
             });
 
-            return Ok(taskResponses);
+            return Ok(new {
+                data = taskResponses,
+                page,
+                limit,
+                total
+            });
         }
 
         // GET: api/tasks/5
