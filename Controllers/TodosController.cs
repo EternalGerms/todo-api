@@ -12,7 +12,7 @@ namespace TodoApi.Controllers
 {
     [ApiController]
     [Authorize]
-    [Route("todos")]
+    [Route("api/todos")]
     public class TodosController : ControllerBase
     {
         private readonly TodoContext _context;
@@ -22,7 +22,7 @@ namespace TodoApi.Controllers
             _context = context;
         }
 
-        // GET: api/tasks
+        // GET: api/todos
         [HttpGet]
         public async Task<ActionResult<object>> GetTodos(
             [FromQuery] int page = 1,
@@ -85,7 +85,7 @@ namespace TodoApi.Controllers
             });
         }
 
-        // GET: api/tasks/5
+        // GET: api/todos/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<TaskResponse>> GetTask(int id)
         {
@@ -119,7 +119,7 @@ namespace TodoApi.Controllers
             return response;
         }
 
-        // POST: api/tasks
+        // POST: api/todos
         [HttpPost]
         public async Task<ActionResult<TaskResponse>> CreateTask(CreateTaskRequest request)
         {
@@ -151,7 +151,7 @@ namespace TodoApi.Controllers
             return CreatedAtAction(nameof(GetTask), new { id = task.Id }, response);
         }
 
-        // PUT: api/tasks/5
+        // PUT: api/todos/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateTask(int id, UpdateTaskRequest request)
         {
@@ -199,7 +199,7 @@ namespace TodoApi.Controllers
             return NoContent();
         }
 
-        // DELETE: api/tasks/5
+        // DELETE: api/todos/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTask(int id)
         {

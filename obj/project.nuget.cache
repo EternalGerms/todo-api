@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "hIXKMpLD3Gs=",
+  "dgSpecHash": "zw2jZjihoRc=",
   "success": true,
-  "projectFilePath": "C:\\Users\\epoto\\Desktop\\programation\\todo-api\\TodoApi.csproj",
+  "projectFilePath": "C:\\Users\\epoto\\Desktop\\trabajo\\todoApi\\TodoApi\\TodoApi.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\epoto\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\9.0.0\\microsoft.aspnetcore.authentication.jwtbearer.9.0.0.nupkg.sha512",
     "C:\\Users\\epoto\\.nuget\\packages\\microsoft.aspnetcore.openapi\\9.0.4\\microsoft.aspnetcore.openapi.9.0.4.nupkg.sha512",
