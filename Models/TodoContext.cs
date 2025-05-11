@@ -6,7 +6,7 @@ namespace TodoApi.Models
     {
         public TodoContext(DbContextOptions<TodoContext> options) : base(options) { }
 
-        public DbSet<User> Users { get; set; }
-        public DbSet<TodoTask> TodoTasks { get; set; }
+        public DbSet<Usuario> Usuarios { get; set; }
+        public DbSet<TodoTask> Tarefas { get; set; }
     }
 } 

@@ -14,105 +14,104 @@ using Microsoft.Extensions.Configuration;
 namespace TodoApi.Controllers
 {
     [ApiController]
-    public class AuthController : ControllerBase
+    public class AutenticacaoController : ControllerBase
     {
-        private readonly TodoContext _context;
-        private readonly IConfiguration _config;
-        private static Dictionary<string, int> _refreshTokens = new(); // refreshToken -> userId
-        public AuthController(TodoContext context, IConfiguration config)
+        private readonly TodoContext _contexto;
+        private readonly IConfiguration _configuracao;
+        private static Dictionary<string, int> _refreshTokens = new(); // refreshToken -> usuarioId
+        public AutenticacaoController(TodoContext contexto, IConfiguration configuracao)
         {
-            _context = context;
-            _config = config;
+            _contexto = contexto;
+            _configuracao = configuracao;
         }
 
-        [HttpPost("/register")]
-        public async Task<IActionResult> Register(RegisterRequest request)
+        [HttpPost("/registrar")]
+        public async Task<IActionResult> Registrar(RequisicaoRegistro requisicao)
         {
-            if (await _context.Users.AnyAsync(u => u.Email == request.Email))
-                return BadRequest(new { message = "Email already exists." });
+            if (await _contexto.Users.AnyAsync(u => u.Email == requisicao.Email))
+                return BadRequest(new { mensagem = "E-mail já cadastrado." });
 
-            var user = new User
+            var usuario = new User
             {
-                Name = request.Name,
-                Email = request.Email,
-                PasswordHash = HashPassword(request.Password),
+                Name = requisicao.Nome,
+                Email = requisicao.Email,
+                PasswordHash = GerarHashSenha(requisicao.Senha),
             };
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            _contexto.Users.Add(usuario);
+            await _contexto.SaveChangesAsync();
 
-            var token = GenerateJwtToken(user);
-            var refreshToken = GenerateRefreshToken();
-            _refreshTokens[refreshToken] = user.Id;
-            return Ok(new AuthResponse { Token = token, RefreshToken = refreshToken });
+            var token = GerarJwtToken(usuario);
+            var refreshToken = GerarRefreshToken();
+            _refreshTokens[refreshToken] = usuario.Id;
+            return Ok(new RespostaAutenticacao { Token = token, RefreshToken = refreshToken });
         }
 
         [HttpPost("/login")]
-        public async Task<IActionResult> Login(LoginRequest request)
+        public async Task<IActionResult> Login(RequisicaoLogin requisicao)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
-            if (user == null || user.PasswordHash != HashPassword(request.Password))
-                return Unauthorized(new { message = "Invalid credentials." });
+            var usuario = await _contexto.Users.FirstOrDefaultAsync(u => u.Email == requisicao.Email);
+            if (usuario == null || usuario.PasswordHash != GerarHashSenha(requisicao.Senha))
+                return Unauthorized(new { mensagem = "Credenciais inválidas." });
 
-            var token = GenerateJwtToken(user);
-            var refreshToken = GenerateRefreshToken();
-            _refreshTokens[refreshToken] = user.Id;
-            return Ok(new AuthResponse { Token = token, RefreshToken = refreshToken });
+            var token = GerarJwtToken(usuario);
+            var refreshToken = GerarRefreshToken();
+            _refreshTokens[refreshToken] = usuario.Id;
+            return Ok(new RespostaAutenticacao { Token = token, RefreshToken = refreshToken });
         }
 
         [HttpPost("/refresh")]
-        public IActionResult Refresh([FromBody] RefreshTokenRequest request)
+        public IActionResult Refresh([FromBody] RequisicaoRefreshToken requisicao)
         {
-            if (!_refreshTokens.TryGetValue(request.RefreshToken, out int userId))
-                return Unauthorized(new { message = "Invalid refresh token." });
+            if (!_refreshTokens.TryGetValue(requisicao.RefreshToken, out int usuarioId))
+                return Unauthorized(new { mensagem = "Refresh token inválido." });
 
-            var user = _context.Users.Find(userId);
-            if (user == null)
-                return Unauthorized(new { message = "Invalid refresh token." });
+            var usuario = _contexto.Users.Find(usuarioId);
+            if (usuario == null)
+                return Unauthorized(new { mensagem = "Refresh token inválido." });
 
-            // Gera novo token e refresh token
-            var token = GenerateJwtToken(user);
-            var newRefreshToken = GenerateRefreshToken();
-            _refreshTokens.Remove(request.RefreshToken);
-            _refreshTokens[newRefreshToken] = user.Id;
-            return Ok(new RefreshTokenResponse { Token = token, RefreshToken = newRefreshToken });
+            var token = GerarJwtToken(usuario);
+            var novoRefreshToken = GerarRefreshToken();
+            _refreshTokens.Remove(requisicao.RefreshToken);
+            _refreshTokens[novoRefreshToken] = usuario.Id;
+            return Ok(new RespostaRefreshToken { Token = token, RefreshToken = novoRefreshToken });
         }
 
-        private string GenerateRefreshToken()
+        private string GerarHashSenha(string senha)
+        {
+            using var sha256 = SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(senha));
+            return Convert.ToBase64String(bytes);
+        }
+
+        private string GerarJwtToken(User usuario)
+        {
+            var chaveJwt = _configuracao["Jwt:Key"] ?? "ChaveSecretaParaJwtToken";
+            var emissorJwt = _configuracao["Jwt:Issuer"] ?? "EmissorTodoApi";
+            var audienciaJwt = _configuracao["Jwt:Audience"] ?? "AudienciaTodoApi";
+            var chaveSeguranca = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(chaveJwt));
+            var credenciais = new SigningCredentials(chaveSeguranca, SecurityAlgorithms.HmacSha256);
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, usuario.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, usuario.Email),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+            var token = new JwtSecurityToken(
+                issuer: emissorJwt,
+                audience: audienciaJwt,
+                claims: claims,
+                expires: DateTime.UtcNow.AddHours(2),
+                signingCredentials: credenciais
+            );
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        private string GerarRefreshToken()
         {
             var randomBytes = new byte[32];
             using var rng = RandomNumberGenerator.Create();
             rng.GetBytes(randomBytes);
             return Convert.ToBase64String(randomBytes);
-        }
-
-        private string HashPassword(string password)
-        {
-            using var sha256 = SHA256.Create();
-            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return Convert.ToBase64String(bytes);
-        }
-
-        private string GenerateJwtToken(User user)
-        {
-            var jwtKey = _config["Jwt:Key"] ?? "ThisIsASecretKeyForJwtToken";
-            var jwtIssuer = _config["Jwt:Issuer"] ?? "TodoApiIssuer";
-            var jwtAudience = _config["Jwt:Audience"] ?? "TodoApiAudience";
-            var securityKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtKey));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-            var claims = new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
-            var token = new JwtSecurityToken(
-                issuer: jwtIssuer,
-                audience: jwtAudience,
-                claims: claims,
-                expires: DateTime.UtcNow.AddHours(2),
-                signingCredentials: credentials
-            );
-            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 } 

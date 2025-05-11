@@ -42,4 +42,45 @@ namespace TodoApi.Models.DTOs
         public string Token { get; set; } = null!;
         public string RefreshToken { get; set; } = null!;
     }
+
+    public class RequisicaoRegistro
+    {
+        [Required]
+        public string Nome { get; set; } = null!;
+
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = null!;
+
+        [Required]
+        public string Senha { get; set; } = null!;
+    }
+
+    public class RequisicaoLogin
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = null!;
+
+        [Required]
+        public string Senha { get; set; } = null!;
+    }
+
+    public class RespostaAutenticacao
+    {
+        public string Token { get; set; } = null!;
+        public string RefreshToken { get; set; } = null!;
+    }
+
+    public class RequisicaoRefreshToken
+    {
+        [Required]
+        public string RefreshToken { get; set; } = null!;
+    }
+
+    public class RespostaRefreshToken
+    {
+        public string Token { get; set; } = null!;
+        public string RefreshToken { get; set; } = null!;
+    }
 } 

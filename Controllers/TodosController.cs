@@ -12,183 +12,176 @@ namespace TodoApi.Controllers
 {
     [ApiController]
     [Authorize]
-    [Route("api/todos")]
-    public class TodosController : ControllerBase
+    [Route("api/tarefas")]
+    public class TarefasController : ControllerBase
     {
-        private readonly TodoContext _context;
+        private readonly TodoContext _contexto;
 
-        public TodosController(TodoContext context)
+        public TarefasController(TodoContext contexto)
         {
-            _context = context;
+            _contexto = contexto;
         }
 
-        // GET: api/todos
+        // GET: api/tarefas
         [HttpGet]
-        public async Task<ActionResult<object>> GetTodos(
-            [FromQuery] int page = 1,
-            [FromQuery] int limit = 10,
-            [FromQuery] TodoApi.Models.TaskStatus? status = null,
-            [FromQuery] string sort = "id",
-            [FromQuery] string order = "asc")
+        public async Task<ActionResult<object>> ObterTarefas(
+            [FromQuery] int pagina = 1,
+            [FromQuery] int limite = 10,
+            [FromQuery] TodoApi.Models.StatusTarefa? status = null,
+            [FromQuery] string ordenarPor = "id",
+            [FromQuery] string ordem = "asc")
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst(ClaimTypes.Name) ?? User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst(ClaimTypes.Name) ?? User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
+            if (usuarioIdClaim == null || !int.TryParse(usuarioIdClaim.Value, out int usuarioId))
             {
-                return StatusCode(401, new { message = "Unauthorized: Token não fornecido ou inválido." });
+                return StatusCode(401, new { mensagem = "Não autorizado: Token não fornecido ou inválido." });
             }
 
-            // Get tasks for the current user
-            var query = _context.TodoTasks.Where(t => t.UserId == userId);
+            var consulta = _contexto.TodoTasks.Where(t => t.UserId == usuarioId);
 
-            // Filter by status if provided
             if (status.HasValue)
             {
-                query = query.Where(t => t.Status == status.Value);
+                consulta = consulta.Where(t => t.Status == status.Value);
             }
 
-            // Sorting
-            bool descending = order.ToLower() == "desc";
-            switch (sort.ToLower())
+            bool descendente = ordem.ToLower() == "desc";
+            switch (ordenarPor.ToLower())
             {
                 case "title":
-                    query = descending ? query.OrderByDescending(t => t.Title) : query.OrderBy(t => t.Title);
+                    consulta = descendente ? consulta.OrderByDescending(t => t.Title) : consulta.OrderBy(t => t.Title);
                     break;
                 case "status":
-                    query = descending ? query.OrderByDescending(t => t.Status) : query.OrderBy(t => t.Status);
+                    consulta = descendente ? consulta.OrderByDescending(t => t.Status) : consulta.OrderBy(t => t.Status);
                     break;
                 case "id":
                 default:
-                    query = descending ? query.OrderByDescending(t => t.Id) : query.OrderBy(t => t.Id);
+                    consulta = descendente ? consulta.OrderByDescending(t => t.Id) : consulta.OrderBy(t => t.Id);
                     break;
             }
 
-            var total = await query.CountAsync();
-            var tasks = await query
-                .Skip((page - 1) * limit)
-                .Take(limit)
+            var total = await consulta.CountAsync();
+            var tarefas = await consulta
+                .Skip((pagina - 1) * limite)
+                .Take(limite)
                 .ToListAsync();
 
-            // Map to response DTOs
-            var taskResponses = tasks.Select(t => new TaskResponse
+            var respostaTarefas = tarefas.Select(t => new RespostaTarefa
             {
                 Id = t.Id,
-                Title = t.Title,
-                Description = t.Description,
+                Titulo = t.Title,
+                Descricao = t.Description,
                 Status = t.Status
             });
 
             return Ok(new {
-                data = taskResponses,
-                page,
-                limit,
+                dados = respostaTarefas,
+                pagina,
+                limite,
                 total
             });
         }
 
-        // GET: api/todos/{id}
+        // GET: api/tarefas/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<TaskResponse>> GetTask(int id)
+        public async Task<ActionResult<RespostaTarefa>> ObterTarefa(int id)
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst(ClaimTypes.Name) ?? User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst(ClaimTypes.Name) ?? User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
+            if (usuarioIdClaim == null || !int.TryParse(usuarioIdClaim.Value, out int usuarioId))
             {
-                return StatusCode(401, new { message = "Unauthorized: Token não fornecido ou inválido." });
+                return StatusCode(401, new { mensagem = "Não autorizado: Token não fornecido ou inválido." });
             }
 
-            var task = await _context.TodoTasks.FindAsync(id);
+            var tarefa = await _contexto.TodoTasks.FindAsync(id);
 
-            if (task == null)
+            if (tarefa == null)
             {
-                return NotFound(new { message = "Not Found: Tarefa não encontrada." });
+                return NotFound(new { mensagem = "Não encontrada: Tarefa não localizada." });
             }
 
-            // Ensure the user owns this task
-            if (task.UserId != userId)
+            if (tarefa.UserId != usuarioId)
             {
-                return StatusCode(403, new { message = "Forbidden: Você não tem permissão para acessar esta tarefa." });
+                return StatusCode(403, new { mensagem = "Proibido: Você não tem permissão para acessar esta tarefa." });
             }
 
-            var response = new TaskResponse
+            var resposta = new RespostaTarefa
             {
-                Id = task.Id,
-                Title = task.Title,
-                Description = task.Description,
-                Status = task.Status
+                Id = tarefa.Id,
+                Titulo = tarefa.Title,
+                Descricao = tarefa.Description,
+                Status = tarefa.Status
             };
 
-            return response;
+            return resposta;
         }
 
-        // POST: api/todos
+        // POST: api/tarefas
         [HttpPost]
-        public async Task<ActionResult<TaskResponse>> CreateTask(CreateTaskRequest request)
+        public async Task<ActionResult<RespostaTarefa>> CriarTarefa(RequisicaoCriarTarefa requisicao)
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst(ClaimTypes.Name) ?? User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst(ClaimTypes.Name) ?? User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
+            if (usuarioIdClaim == null || !int.TryParse(usuarioIdClaim.Value, out int usuarioId))
             {
-                return Unauthorized();
+                return StatusCode(401, new { mensagem = "Não autorizado: Token não fornecido ou inválido." });
             }
 
-            var task = new TodoTask
+            var tarefa = new TodoTask
             {
-                Title = request.Title,
-                Description = request.Description,
-                Status = request.Status,
-                UserId = userId
+                Title = requisicao.Titulo,
+                Description = requisicao.Descricao,
+                Status = requisicao.Status,
+                UserId = usuarioId
             };
 
-            _context.TodoTasks.Add(task);
-            await _context.SaveChangesAsync();
+            _contexto.TodoTasks.Add(tarefa);
+            await _contexto.SaveChangesAsync();
 
-            var response = new TaskResponse
+            var resposta = new RespostaTarefa
             {
-                Id = task.Id,
-                Title = task.Title,
-                Description = task.Description,
-                Status = task.Status
+                Id = tarefa.Id,
+                Titulo = tarefa.Title,
+                Descricao = tarefa.Description,
+                Status = tarefa.Status
             };
 
-            return CreatedAtAction(nameof(GetTask), new { id = task.Id }, response);
+            return CreatedAtAction(nameof(ObterTarefa), new { id = tarefa.Id }, resposta);
         }
 
-        // PUT: api/todos/{id}
+        // PUT: api/tarefas/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateTask(int id, UpdateTaskRequest request)
+        public async Task<IActionResult> AtualizarTarefa(int id, RequisicaoAtualizarTarefa requisicao)
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst(ClaimTypes.Name) ?? User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst(ClaimTypes.Name) ?? User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
+            if (usuarioIdClaim == null || !int.TryParse(usuarioIdClaim.Value, out int usuarioId))
             {
-                return StatusCode(401, new { message = "Unauthorized: Token não fornecido ou inválido." });
+                return StatusCode(401, new { mensagem = "Não autorizado: Token não fornecido ou inválido." });
             }
 
-            var task = await _context.TodoTasks.FindAsync(id);
-            if (task == null)
+            var tarefa = await _contexto.TodoTasks.FindAsync(id);
+            if (tarefa == null)
             {
-                return NotFound(new { message = "Not Found: Tarefa não encontrada." });
+                return NotFound(new { mensagem = "Não encontrada: Tarefa não localizada." });
             }
 
-            // Ensure the user owns this task
-            if (task.UserId != userId)
+            if (tarefa.UserId != usuarioId)
             {
-                return StatusCode(403, new { message = "Forbidden: Você não tem permissão para atualizar esta tarefa." });
+                return StatusCode(403, new { mensagem = "Proibido: Você não tem permissão para atualizar esta tarefa." });
             }
 
-            // Update task properties
-            task.Title = request.Title;
-            task.Description = request.Description;
-            task.Status = request.Status;
+            tarefa.Title = requisicao.Titulo;
+            tarefa.Description = requisicao.Descricao;
+            tarefa.Status = requisicao.Status;
 
-            _context.Entry(task).State = EntityState.Modified;
+            _contexto.Entry(tarefa).State = EntityState.Modified;
 
             try
             {
-                await _context.SaveChangesAsync();
+                await _contexto.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!TaskExists(id))
+                if (!TarefaExiste(id))
                 {
-                    return NotFound();
+                    return NotFound(new { mensagem = "Não encontrada: Tarefa não localizada." });
                 }
                 else
                 {
@@ -199,37 +192,36 @@ namespace TodoApi.Controllers
             return NoContent();
         }
 
-        // DELETE: api/todos/{id}
+        // DELETE: api/tarefas/{id}
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteTask(int id)
+        public async Task<IActionResult> DeletarTarefa(int id)
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst(ClaimTypes.Name) ?? User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            var usuarioIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst(ClaimTypes.Name) ?? User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
+            if (usuarioIdClaim == null || !int.TryParse(usuarioIdClaim.Value, out int usuarioId))
             {
-                return StatusCode(401, new { message = "Unauthorized: Token não fornecido ou inválido." });
+                return StatusCode(401, new { mensagem = "Não autorizado: Token não fornecido ou inválido." });
             }
 
-            var task = await _context.TodoTasks.FindAsync(id);
-            if (task == null)
+            var tarefa = await _contexto.TodoTasks.FindAsync(id);
+            if (tarefa == null)
             {
-                return NotFound(new { message = "Not Found: Tarefa não encontrada." });
+                return NotFound(new { mensagem = "Não encontrada: Tarefa não localizada." });
             }
 
-            // Ensure the user owns this task
-            if (task.UserId != userId)
+            if (tarefa.UserId != usuarioId)
             {
-                return StatusCode(403, new { message = "Forbidden: Você não tem permissão para deletar esta tarefa." });
+                return StatusCode(403, new { mensagem = "Proibido: Você não tem permissão para deletar esta tarefa." });
             }
 
-            _context.TodoTasks.Remove(task);
-            await _context.SaveChangesAsync();
+            _contexto.TodoTasks.Remove(tarefa);
+            await _contexto.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool TaskExists(int id)
+        private bool TarefaExiste(int id)
         {
-            return _context.TodoTasks.Any(e => e.Id == id);
+            return _contexto.TodoTasks.Any(e => e.Id == id);
         }
     }
 } 
