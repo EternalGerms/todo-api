@@ -1,258 +1,351 @@
-{
-  "info": {
-    "name": "TodoApi Full Collection",
-    "_postman_id": "b1e1e1e1-1111-2222-3333-444455556666",
-    "description": "Coleção completa para testar todos os endpoints e casos da TodoApi.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
-  "item": [
-    {
-      "name": "Register",
-      "request": {
-        "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"testuser@example.com\",\n  \"password\": \"TestPassword123\"\n}"
-        },
-        "url": {
-          "raw": "{{baseUrl}}/register",
-          "host": ["{{baseUrl}}"],
-          "path": ["register"]
-        }
-      },
-      "response": []
+  {
+    "info": {
+      "name": "TodoApi Full Collection",
+      "_postman_id": "b1e1e1e1-1111-2222-3333-444455556666",
+      "description": "Coleção completa para testar todos os endpoints e casos da TodoApi.",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
-    {
-      "name": "Register - Email já existe",
-      "request": {
-        "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"testuser@example.com\",\n  \"password\": \"TestPassword123\"\n}"
-        },
-        "url": {
-          "raw": "{{baseUrl}}/register",
-          "host": ["{{baseUrl}}"],
-          "path": ["register"]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Login",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "var json = pm.response.json();",
-              "pm.environment.set(\"jwt_token\", json.token);"
-            ],
-            "type": "text/javascript"
+    "item": [
+      {
+        "name": "Register",
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "var json = pm.response.json();",
+                "pm.environment.set(\"jwt_token\", json.token);",
+                "pm.environment.set(\"refresh_token\", json.refreshToken);"
+              ],
+              "type": "text/javascript"
+            }
           }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
         ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"password\": \"TestPassword123\"\n}"
+        "request": {
+          "method": "POST",
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"testuser@example.com\",\n  \"password\": \"TestPassword123\"\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/register",
+            "host": ["{{baseUrl}}"],
+            "path": ["register"]
+          }
         },
-        "url": {
-          "raw": "{{baseUrl}}/login",
-          "host": ["{{baseUrl}}"],
-          "path": ["login"]
-        }
+        "response": []
       },
-      "response": []
-    },
-    {
-      "name": "Login - Credenciais inválidas",
-      "request": {
-        "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"password\": \"SenhaErrada\"\n}"
+      {
+        "name": "Register - Email já existe",
+        "request": {
+          "method": "POST",
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"testuser@example.com\",\n  \"password\": \"TestPassword123\"\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/register",
+            "host": ["{{baseUrl}}"],
+            "path": ["register"]
+          }
         },
-        "url": {
-          "raw": "{{baseUrl}}/login",
-          "host": ["{{baseUrl}}"],
-          "path": ["login"]
-        }
+        "response": []
       },
-      "response": []
-    },
-    {
-      "name": "Get Todos (JWT Protected)",
-      "request": {
-        "method": "GET",
-        "header": [
-          { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+      {
+        "name": "Login",
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "var json = pm.response.json();",
+                "pm.environment.set(\"jwt_token\", json.token);",
+                "pm.environment.set(\"refresh_token\", json.refreshToken);"
+              ],
+              "type": "text/javascript"
+            }
+          }
         ],
-        "url": {
-          "raw": "{{baseUrl}}/api/todos?page=1&limit=10&sort=title&order=asc&status=Pending",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "todos"],
-          "query": [
-            { "key": "page", "value": "1" },
-            { "key": "limit", "value": "10" },
-            { "key": "sort", "value": "title" },
-            { "key": "order", "value": "asc" },
-            { "key": "status", "value": "Pending" }
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Get Todos - Sem Token",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/api/todos",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "todos"]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Get Todos - Token Inválido",
-      "request": {
-        "method": "GET",
-        "header": [
-          { "key": "Authorization", "value": "Bearer token_invalido" }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/api/todos",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "todos"]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Create Todo",
-      "request": {
-        "method": "POST",
-        "header": [
-          { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
-          { "key": "Content-Type", "value": "application/json" }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"title\": \"My Task\",\n  \"description\": \"Details about the task\",\n  \"status\": \"Pending\"\n}"
+        "request": {
+          "method": "POST",
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"password\": \"TestPassword123\"\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/login",
+            "host": ["{{baseUrl}}"],
+            "path": ["login"]
+          }
         },
-        "url": {
-          "raw": "{{baseUrl}}/api/todos",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "todos"]
-        }
+        "response": []
       },
-      "response": []
-    },
-    {
-      "name": "Create Todo - Sem Token",
-      "request": {
-        "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"title\": \"My Task\",\n  \"description\": \"Details about the task\",\n  \"status\": \"Pending\"\n}"
+      {
+        "name": "Login - Credenciais inválidas",
+        "request": {
+          "method": "POST",
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"password\": \"SenhaErrada\"\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/login",
+            "host": ["{{baseUrl}}"],
+            "path": ["login"]
+          }
         },
-        "url": {
-          "raw": "{{baseUrl}}/api/todos",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "todos"]
-        }
+        "response": []
       },
-      "response": []
-    },
-    {
-      "name": "Update Todo",
-      "request": {
-        "method": "PUT",
-        "header": [
-          { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
-          { "key": "Content-Type", "value": "application/json" }
+      {
+        "name": "Refresh Token",
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "var json = pm.response.json();",
+                "pm.environment.set(\"jwt_token\", json.token);",
+                "pm.environment.set(\"refresh_token\", json.refreshToken);"
+              ],
+              "type": "text/javascript"
+            }
+          }
         ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"title\": \"Updated Task\",\n  \"description\": \"Updated details\",\n  \"status\": \"Done\"\n}"
+        "request": {
+          "method": "POST",
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"refreshToken\": \"{{refresh_token}}\"\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/refresh",
+            "host": ["{{baseUrl}}"],
+            "path": ["refresh"]
+          }
         },
-        "url": {
-          "raw": "{{baseUrl}}/api/todos/1",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "todos", "1"]
-        }
+        "response": []
       },
-      "response": []
-    },
-    {
-      "name": "Update Todo - Forbidden (Outro Usuário)",
-      "request": {
-        "method": "PUT",
-        "header": [
-          { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
-          { "key": "Content-Type", "value": "application/json" }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"title\": \"Updated Task\",\n  \"description\": \"Updated details\",\n  \"status\": \"Done\"\n}"
+      {
+        "name": "Refresh Token - Inválido",
+        "request": {
+          "method": "POST",
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"refreshToken\": \"token_invalido\"\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/refresh",
+            "host": ["{{baseUrl}}"],
+            "path": ["refresh"]
+          }
         },
-        "url": {
-          "raw": "{{baseUrl}}/api/todos/9999",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "todos", "9999"]
-        }
+        "response": []
       },
-      "response": []
-    },
-    {
-      "name": "Delete Todo",
-      "request": {
-        "method": "DELETE",
-        "header": [
-          { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+      {
+        "name": "Get Todos (JWT Protected)",
+        "request": {
+          "method": "GET",
+          "header": [
+            { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+          ],
+          "url": {
+            "raw": "{{baseUrl}}/api/todos?page=1&limit=10&sort=title&order=asc&status=Pending",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "todos"],
+            "query": [
+              { "key": "page", "value": "1" },
+              { "key": "limit", "value": "10" },
+              { "key": "sort", "value": "title" },
+              { "key": "order", "value": "asc" },
+              { "key": "status", "value": "Pending" }
+            ]
+          }
+        },
+        "response": []
+      },
+      {
+        "name": "Get Todos - Sem Token",
+        "request": {
+          "method": "GET",
+          "header": [],
+          "url": {
+            "raw": "{{baseUrl}}/api/todos",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "todos"]
+          }
+        },
+        "response": []
+      },
+      {
+        "name": "Get Todos - Token Inválido",
+        "request": {
+          "method": "GET",
+          "header": [
+            { "key": "Authorization", "value": "Bearer token_invalido" }
+          ],
+          "url": {
+            "raw": "{{baseUrl}}/api/todos",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "todos"]
+          }
+        },
+        "response": []
+      },
+      {
+        "name": "Create Todo",
+        "request": {
+          "method": "POST",
+          "header": [
+            { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"title\": \"My Task\",\n  \"description\": \"Details about the task\",\n  \"status\": \"Pending\"\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/api/todos",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "todos"]
+          }
+        },
+        "response": []
+      },
+      {
+        "name": "Create Todo - Sem Token",
+        "request": {
+          "method": "POST",
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"title\": \"My Task\",\n  \"description\": \"Details about the task\",\n  \"status\": \"Pending\"\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/api/todos",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "todos"]
+          }
+        },
+        "response": []
+      },
+      {
+        "name": "Update Todo",
+        "request": {
+          "method": "PUT",
+          "header": [
+            { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"title\": \"Updated Task\",\n  \"description\": \"Updated details\",\n  \"status\": \"Done\"\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/api/todos/1",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "todos", "1"]
+          }
+        },
+        "response": []
+      },
+      {
+        "name": "Update Todo - Forbidden (Outro Usuário)",
+        "request": {
+          "method": "PUT",
+          "header": [
+            { "key": "Authorization", "value": "Bearer {{jwt_token}}" },
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"title\": \"Updated Task\",\n  \"description\": \"Updated details\",\n  \"status\": \"Done\"\n}"
+          },
+          "url": {
+            "raw": "{{baseUrl}}/api/todos/9999",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "todos", "9999"]
+          }
+        },
+        "response": []
+      },
+      {
+        "name": "Delete Todo",
+        "request": {
+          "method": "DELETE",
+          "header": [
+            { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+          ],
+          "url": {
+            "raw": "{{baseUrl}}/api/todos/1",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "todos", "1"]
+          }
+        },
+        "response": []
+      },
+      {
+        "name": "Delete Todo - Forbidden (Outro Usuário)",
+        "request": {
+          "method": "DELETE",
+          "header": [
+            { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+          ],
+          "url": {
+            "raw": "{{baseUrl}}/api/todos/9999",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "todos", "9999"]
+          }
+        },
+        "response": []
+      },
+      {
+        "name": "Rate Limiting - Exceder Limite",
+        "request": {
+          "method": "GET",
+          "header": [
+            { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+          ],
+          "url": {
+            "raw": "{{baseUrl}}/api/todos",
+            "host": ["{{baseUrl}}"],
+            "path": ["api", "todos"]
+          }
+        },
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test(\"Status code is 429\", function () {",
+                "    pm.response.to.have.status(429);",
+                "});"
+              ],
+              "type": "text/javascript"
+            }
+          }
         ],
-        "url": {
-          "raw": "{{baseUrl}}/api/todos/1",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "todos", "1"]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Delete Todo - Forbidden (Outro Usuário)",
-      "request": {
-        "method": "DELETE",
-        "header": [
-          { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/api/todos/9999",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "todos", "9999"]
-        }
-      },
-      "response": []
-    }
-  ],
-  "event": []
-}
+        "response": []
+      }
+    ],
+    "event": []
+  }

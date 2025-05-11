@@ -28,5 +28,18 @@ namespace TodoApi.Models.DTOs
     public class AuthResponse
     {
         public string Token { get; set; } = null!;
+        public string RefreshToken { get; set; } = null!;
+    }
+
+    public class RefreshTokenRequest
+    {
+        [Required]
+        public string RefreshToken { get; set; } = null!;
+    }
+
+    public class RefreshTokenResponse
+    {
+        public string Token { get; set; } = null!;
+        public string RefreshToken { get; set; } = null!;
     }
 } 

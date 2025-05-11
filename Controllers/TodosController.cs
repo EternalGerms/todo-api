@@ -34,7 +34,7 @@ namespace TodoApi.Controllers
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst(ClaimTypes.Name) ?? User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
             {
-                return Unauthorized();
+                return StatusCode(401, new { message = "Unauthorized: Token não fornecido ou inválido." });
             }
 
             // Get tasks for the current user
@@ -92,20 +92,20 @@ namespace TodoApi.Controllers
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst(ClaimTypes.Name) ?? User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
             {
-                return Unauthorized();
+                return StatusCode(401, new { message = "Unauthorized: Token não fornecido ou inválido." });
             }
 
             var task = await _context.TodoTasks.FindAsync(id);
 
             if (task == null)
             {
-                return NotFound();
+                return NotFound(new { message = "Not Found: Tarefa não encontrada." });
             }
 
             // Ensure the user owns this task
             if (task.UserId != userId)
             {
-                return Forbid();
+                return StatusCode(403, new { message = "Forbidden: Você não tem permissão para acessar esta tarefa." });
             }
 
             var response = new TaskResponse
@@ -158,19 +158,19 @@ namespace TodoApi.Controllers
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst(ClaimTypes.Name) ?? User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
             {
-                return Unauthorized();
+                return StatusCode(401, new { message = "Unauthorized: Token não fornecido ou inválido." });
             }
 
             var task = await _context.TodoTasks.FindAsync(id);
             if (task == null)
             {
-                return NotFound();
+                return NotFound(new { message = "Not Found: Tarefa não encontrada." });
             }
 
             // Ensure the user owns this task
             if (task.UserId != userId)
             {
-                return Forbid();
+                return StatusCode(403, new { message = "Forbidden: Você não tem permissão para atualizar esta tarefa." });
             }
 
             // Update task properties
@@ -206,19 +206,19 @@ namespace TodoApi.Controllers
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst(ClaimTypes.Name) ?? User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
             {
-                return Unauthorized();
+                return StatusCode(401, new { message = "Unauthorized: Token não fornecido ou inválido." });
             }
 
             var task = await _context.TodoTasks.FindAsync(id);
             if (task == null)
             {
-                return NotFound();
+                return NotFound(new { message = "Not Found: Tarefa não encontrada." });
             }
 
             // Ensure the user owns this task
             if (task.UserId != userId)
             {
-                return Forbid();
+                return StatusCode(403, new { message = "Forbidden: Você não tem permissão para deletar esta tarefa." });
             }
 
             _context.TodoTasks.Remove(task);

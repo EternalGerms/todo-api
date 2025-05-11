@@ -18,6 +18,7 @@ namespace TodoApi.Controllers
     {
         private readonly TodoContext _context;
         private readonly IConfiguration _config;
+        private static Dictionary<string, int> _refreshTokens = new(); // refreshToken -> userId
         public AuthController(TodoContext context, IConfiguration config)
         {
             _context = context;
@@ -40,7 +41,9 @@ namespace TodoApi.Controllers
             await _context.SaveChangesAsync();
 
             var token = GenerateJwtToken(user);
-            return Ok(new AuthResponse { Token = token });
+            var refreshToken = GenerateRefreshToken();
+            _refreshTokens[refreshToken] = user.Id;
+            return Ok(new AuthResponse { Token = token, RefreshToken = refreshToken });
         }
 
         [HttpPost("/login")]
@@ -51,7 +54,35 @@ namespace TodoApi.Controllers
                 return Unauthorized(new { message = "Invalid credentials." });
 
             var token = GenerateJwtToken(user);
-            return Ok(new AuthResponse { Token = token });
+            var refreshToken = GenerateRefreshToken();
+            _refreshTokens[refreshToken] = user.Id;
+            return Ok(new AuthResponse { Token = token, RefreshToken = refreshToken });
+        }
+
+        [HttpPost("/refresh")]
+        public IActionResult Refresh([FromBody] RefreshTokenRequest request)
+        {
+            if (!_refreshTokens.TryGetValue(request.RefreshToken, out int userId))
+                return Unauthorized(new { message = "Invalid refresh token." });
+
+            var user = _context.Users.Find(userId);
+            if (user == null)
+                return Unauthorized(new { message = "Invalid refresh token." });
+
+            // Gera novo token e refresh token
+            var token = GenerateJwtToken(user);
+            var newRefreshToken = GenerateRefreshToken();
+            _refreshTokens.Remove(request.RefreshToken);
+            _refreshTokens[newRefreshToken] = user.Id;
+            return Ok(new RefreshTokenResponse { Token = token, RefreshToken = newRefreshToken });
+        }
+
+        private string GenerateRefreshToken()
+        {
+            var randomBytes = new byte[32];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomBytes);
+            return Convert.ToBase64String(randomBytes);
         }
 
         private string HashPassword(string password)
